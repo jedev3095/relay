@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relay</title>
+<style>
+  :root { color-scheme: dark; font: 14px/1.4 'Segoe UI', sans-serif; background:#0d1119; color:#e9eef8; }
+  * { box-sizing:border-box; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-button { display:none; width:0; height:0; }
+  ::-webkit-scrollbar-track { background:transparent; margin-block:8px; }
+  ::-webkit-scrollbar-thumb { background:#586780; border:2px solid #151c28; border-radius:10px; }
+  ::-webkit-scrollbar-corner { background:transparent; }
+  html, body { margin:0; height:100%; overflow:hidden; }
+  button, input, select { font:inherit; }
+  button { cursor:pointer; }
+  button:disabled { cursor:default; opacity:.48; }
+  #app { height:100%; display:flex; flex-direction:column; }
+  header { height:84px; flex:none; padding:17px 24px 13px; background:#141a25; border-bottom:1px solid #2b3547; }
+  .brand { display:flex; align-items:baseline; gap:14px; }
+  h1 { margin:0; font-size:27px; line-height:32px; letter-spacing:-.7px; }
+  .tagline { color:#8f9db3; font-size:12px; }
+  .topline { color:#8f9db3; font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:3px; }
+  nav { height:46px; flex:none; display:flex; align-items:end; gap:4px; padding:0 20px; background:#141a25; border-bottom:1px solid #2b3547; }
+  nav button { height:40px; min-width:108px; color:#aebbd0; background:transparent; border:0; border-bottom:2px solid transparent; font-weight:600; }
+  nav button.active { color:#fff; border-bottom-color:#6897ff; background:#1a2434; }
+  main { flex:1; min-height:0; }
+  .page { display:none; height:100%; }
+  .page.active { display:block; }
+  .macro-layout { display:grid; grid-template-columns:minmax(258px,300px) minmax(0,1fr); height:100%; gap:16px; padding:16px 20px; }
+  .macro-layout.no-events { grid-template-columns:minmax(0,520px); justify-content:center; }
+  aside, .events-panel { min-height:0; border:1px solid #2b3547; border-radius:9px; background:#151c28; }
+  aside { overflow-y:auto; padding:16px; }
+  .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .action { min-height:43px; border:1px solid transparent; border-radius:6px; color:#fff; font-weight:600; }
+  .action.primary { background:#ce4754; }
+  .action.play { background:#2e9e70; }
+  .action.stop { background:#485773; }
+  .action.click { background:#a76c32; }
+  .action.secondary { background:#355fba; }
+  .section-title { color:#91a0b8; font-size:11px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; margin:19px 0 9px; }
+  .check { display:flex; gap:9px; align-items:center; min-height:30px; color:#d2dbe9; font-size:13px; }
+  .check input { accent-color:#5d8ef4; }
+  .field { margin-top:10px; }
+  .number-grid { display:block; }
+  .field label { display:block; color:#aebbd0; font-size:12px; margin-bottom:5px; }
+  .field input, .field select { width:100%; height:34px; border-radius:5px; border:1px solid #3b4960; background:#0f1520; color:#edf3ff; padding:0 10px; outline:none; }
+  .field input:focus, .field select:focus { border-color:#79a1ff; }
+  .file-name { overflow-wrap:anywhere; color:#abb9ce; font-size:12px; min-height:28px; padding:4px 0; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:10px 0 2px; }
+  .stat { border:1px solid #2c394c; border-radius:6px; padding:8px; }
+  .stat b { display:block; font-size:15px; color:#fff; }
+  .stat span { font-size:11px; color:#8f9db3; }
+  .events-panel { display:flex; flex-direction:column; overflow:hidden; }
+  .macro-layout.no-events .events-panel { display:none; }
+  .events-head { flex:none; display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #2b3547; }
+  .events-head h2, .settings h2 { margin:0; font-size:17px; }
+  .event-help { flex:none; border-bottom:1px solid #2b3547; padding:7px 16px; color:#93a4bb; font-size:11px; }
+  .event-help summary { cursor:pointer; width:max-content; }
+  .event-help div { margin-top:7px; line-height:1.6; }
+  .event-help b { color:#c8d4e6; }
+  .quiet-button { border:1px solid #3d5e9b; background:#263d69; color:#e9f0ff; border-radius:5px; min-height:31px; padding:0 13px; font-weight:600; }
+  .table-wrap { flex:1; min-height:0; overflow:auto; }
+  table { width:100%; border-collapse:collapse; white-space:nowrap; font:12px Consolas,monospace; }
+  th { position:sticky; top:0; z-index:1; background:#202a3a; color:#adbcd1; text-align:left; font-weight:600; padding:9px 8px; border-bottom:1px solid #3a475c; }
+  td { padding:7px 8px; border-bottom:1px solid #273142; }
+  th:not(:last-child) { border-right:1px solid #43516a; }
+  td:not(:last-child) { border-right:1px solid #2e3b50; }
+  tr:nth-child(even) td { background:#182230; }
+  td input { width:75px; min-width:50px; border:1px solid #5a78ae; background:#0e1624; color:white; padding:4px; font:12px Consolas,monospace; }
+  td[data-field="type"] input, td[data-field="key"] input { width:110px; }
+  .empty { color:#8291a8; text-align:center; padding:42px 15px; white-space:normal; font:13px 'Segoe UI',sans-serif; }
+  .settings { height:100%; overflow-y:auto; padding:22px 24px 40px; }
+  .settings-grid { display:grid; grid-template-columns:minmax(310px,520px) minmax(240px,360px); gap:18px; align-items:start; }
+  .settings-column { display:flex; flex-direction:column; gap:18px; min-width:0; }
+  .card { border:1px solid #2b3547; border-radius:9px; background:#151c28; padding:18px; }
+  .card p { color:#96a5bb; margin:5px 0 16px; font-size:12px; }
+  .layout-choice { display:flex; gap:11px; align-items:flex-start; padding:12px 0; border-top:1px solid #283344; cursor:pointer; }
+  .layout-choice input { accent-color:#5d8ef4; margin:3px 0 0; }
+  .layout-choice span { display:block; font-weight:600; }
+  .layout-choice small { display:block; color:#91a0b8; font-size:12px; font-weight:400; margin-top:2px; }
+  .hotkey-row { display:grid; grid-template-columns:minmax(110px,1fr) 190px; gap:12px; align-items:center; min-height:48px; border-top:1px solid #283344; }
+  .hotkey-row:first-of-type { border-top:0; }
+  .hotkey-row button { min-height:32px; border-radius:5px; border:1px solid #415572; background:#26354b; color:#fff; font:12px Consolas,monospace; }
+  .hotkey-row button.capturing { border-color:#7ba4ff; background:#35517f; }
+  footer { flex:none; min-height:34px; display:flex; align-items:center; padding:5px 22px; background:#141a25; border-top:1px solid #2b3547; color:#b8c6d9; font-size:12px; }
+  @media(max-width:780px) { .macro-layout { grid-template-columns:250px minmax(0,1fr); gap:10px; padding:10px; } .settings-grid { grid-template-columns:1fr; } }
+  body.compact header { height:54px; padding:9px 16px; }
+  body.compact .topline, body.compact .tagline { display:none; }
+  body.compact h1 { font-size:24px; line-height:34px; }
+  body.compact nav { height:38px; padding:0 10px; }
+  body.compact nav button { height:33px; min-width:86px; font-size:12px; }
+  body.compact footer { min-height:28px; padding:3px 13px; }
+  body.compact .macro-layout { display:block; padding:8px; }
+  body.compact aside { height:100%; padding:11px 13px; }
+  body.compact .action-grid { gap:6px; }
+  body.compact .action { min-height:36px; font-size:12px; }
+  body.compact .section-title { margin:10px 0 5px; }
+  body.compact .check { min-height:23px; font-size:12px; }
+  body.compact .number-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  body.compact .field { margin-top:6px; }
+  body.compact .field label { font-size:11px; min-height:27px; margin-bottom:3px; }
+  body.compact .field input { height:30px; }
+  body.compact .file-name { min-height:20px; padding:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  body.compact .stats { padding:4px 0 0; }
+  body.compact .stat { padding:5px 8px; }
+  body.compact .stat b { font-size:13px; }
+  body.compact .settings { padding:12px 12px 28px; }
+  body.compact .settings-grid { grid-template-columns:1fr; gap:12px; }
+  body.compact .settings-column { gap:12px; }
+  body.compact .card { padding:14px; }
+  body.compact .hotkey-row { grid-template-columns:minmax(100px,1fr) 150px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header><div class="topline">Input automation</div><div class="brand"><h1>relay</h1><span class="tagline">record, replay, repeat.</span></div></header>
+  <nav><button id="macro-tab" class="active" type="button">Macro</button><button id="settings-tab" type="button">Settings</button></nav>
+  <main>
+    <section id="macro-page" class="page active">
+      <div class="macro-layout">
+        <aside>
+          <div class="action-grid">
+            <button class="action primary" id="record" type="button">Record / stop</button>
+            <button class="action play" id="play" type="button">Play</button>
+            <button class="action stop" id="stop" type="button">Stop all</button>
+            <button class="action click" id="click" type="button">Start autoclicker</button>
+          </div>
+          <div class="section-title">Playback</div>
+          <label class="check"><input id="relativeMouse" type="checkbox">Game-style relative mouse moves</label>
+          <label class="check"><input id="restoreCursor" type="checkbox">Restore start cursor</label>
+          <label class="check"><input id="continuousPlayback" type="checkbox">Continuous playback</label>
+          <div class="number-grid">
+            <div class="field"><label for="speed">Speed multiplier</label><input id="speed" type="number" min="0.05" max="10" step="0.05"></div>
+            <div class="field"><label for="mouseScale">Mouse distance multiplier</label><input id="mouseScale" type="number" min="0.01" max="20" step="0.05"></div>
+          </div>
+          <div class="section-title">Macro file</div>
+          <div class="action-grid"><button class="action secondary" id="save" type="button">Save macro</button><button class="action secondary" id="load" type="button">Load macro</button></div>
+          <div class="file-name" id="file">No file loaded</div>
+          <div class="stats"><div class="stat"><b id="event-count">0</b><span>events</span></div><div class="stat"><b id="duration">0.00s</b><span>duration</span></div></div>
+        </aside>
+        <div class="events-panel">
+          <div class="events-head"><h2>Recorded events</h2><button class="quiet-button" id="edit" type="button">Edit events</button></div>
+          <details class="event-help"><summary>What do these columns mean?</summary><div><b>X / Y</b> are screen positions. <b>Move X / Move Y</b> are relative mouse movement distances. <b>Button</b> uses 1 = left, 2 = right, 3 = middle. <b>Key</b> shows the keyboard key; editing it changes the key used in playback.</div></details>
+          <div class="table-wrap"><table><thead><tr><th title="Milliseconds since recording began">Time (ms)</th><th>Event</th><th title="Horizontal screen position">X</th><th title="Vertical screen position">Y</th><th title="Horizontal mouse movement distance">Move X</th><th title="Vertical mouse movement distance">Move Y</th><th title="Mouse button: 1 left, 2 right, 3 middle">Button</th><th title="Mouse wheel scroll amount">Wheel</th><th title="Keyboard key used for playback">Key</th></tr></thead><tbody id="event-rows"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+    <section id="settings-page" class="page">
+      <div class="settings"><div class="settings-grid">
+        <div class="settings-column">
+          <div class="card"><h2>Layout</h2><p>Choose how much of Relay stays on screen.</p>
+            <label class="layout-choice"><input id="compactMode" type="checkbox"><span>Compact mode<small>Use a smaller window with the main controls. The events table is hidden.</small></span></label>
+            <label class="layout-choice"><input id="showEvents" type="checkbox"><span>Show events table<small>Show the event list and editor in the standard window.</small></span></label>
+          </div>
+          <div class="card"><h2>Autoclicker</h2><p>These settings apply the next time the autoclicker starts.</p>
+            <div class="field"><label for="clickInterval">Interval between clicks (ms)</label><input id="clickInterval" type="number" min="10" max="60000" step="10"></div>
+            <div class="field"><label for="clickButton">Mouse button</label><select id="clickButton"><option value="1">Left</option><option value="2">Right</option><option value="3">Middle</option></select></div>
+          </div>
+        </div>
+        <div class="card"><h2>Global hotkeys</h2><p>Choose a shortcut, then press a key combination. Esc cancels.</p><div id="hotkey-rows"></div></div>
+      </div></div>
+    </section>
+  </main>
+  <footer id="status">Loading Relay...</footer>
+</div>
+<script>
+  const $ = id => document.getElementById(id);
+  const send = (type, extra = {}) => window.chrome.webview.postMessage({type, ...extra});
+  const labels = {record:'Record / stop', play:'Play', stop:'Stop all', click:'Autoclicker', save:'Save macro', load:'Load macro'};
+  const fields = ['t','type','x','y','dx','dy','button','wheel','key'];
+  let state = null, captureAction = null;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function page(name) {
+    for (const item of ['macro','settings']) { $(item+'-page').classList.toggle('active', item===name); $(item+'-tab').classList.toggle('active', item===name); }
+  }
+  $('macro-tab').onclick = () => page('macro');
+  $('settings-tab').onclick = () => page('settings');
+  for (const action of ['record','play','stop','click','save','load','edit']) $(action).onclick = () => send(action);
+  for (const name of ['relativeMouse','restoreCursor','continuousPlayback','speed','mouseScale','clickInterval','clickButton','compactMode','showEvents']) {
+    $(name).addEventListener('change', () => send('option', {name, value: $(name).type==='checkbox' ? $(name).checked : $(name).value}));
+  }
+  document.addEventListener('keydown', event => {
+    if (!captureAction) return;
+    event.preventDefault(); event.stopPropagation();
+    if (event.code==='Escape') { captureAction=null; send('cancelHotkey'); render(state); return; }
+    if (['ControlLeft','ControlRight','ShiftLeft','ShiftRight','AltLeft','AltRight','MetaLeft','MetaRight'].includes(event.code)) return;
+    const action=captureAction; captureAction=null;
+    send('hotkey', {action, code:event.code, ctrl:event.ctrlKey, shift:event.shiftKey, alt:event.altKey});
+  }, true);
+  function render(next) {
+    if (!next) return;
+    state=next;
+    document.body.classList.toggle('compact', next.options.compactMode);
+    document.querySelector('.macro-layout').classList.toggle('no-events', next.options.compactMode || !next.options.showEvents);
+    $('status').textContent=next.status;
+    $('event-count').textContent=next.eventCount;
+    $('duration').textContent=(next.durationMs/1000).toFixed(2)+'s';
+    $('file').textContent=next.file || 'No file loaded';
+    $('click').textContent=next.clicking ? 'Stop autoclicker' : 'Start autoclicker';
+    $('edit').textContent=next.editing ? 'Done editing' : 'Edit events';
+    for (const [id, disabled] of Object.entries({record:next.playing,play:next.busy||!next.eventCount,stop:false,click:next.busy&&!next.clicking,save:next.busy||!next.eventCount,load:next.busy,edit:next.busy||!next.eventCount})) $(id).disabled=disabled;
+    for (const name of ['relativeMouse','restoreCursor','continuousPlayback','compactMode','showEvents']) $(name).checked=next.options[name];
+    for (const name of ['speed','mouseScale','clickInterval','clickButton']) if (document.activeElement!==$(name)) $(name).value=next.options[name];
+    const scroller=document.querySelector('.table-wrap'), oldScroll=scroller.scrollTop;
+    const rows=next.events||[];
+    const eventNames={mouse_move:'Mouse move',mouse_down:'Mouse press',mouse_up:'Mouse release',mouse_wheel:'Mouse wheel',key_down:'Key press',key_up:'Key release'};
+    $('event-rows').innerHTML=rows.length ? rows.map((row,i) => '<tr>'+fields.map(field => {
+      const value=row[field] ?? '';
+      const shown=field==='type' ? (eventNames[value] ?? value) : value;
+      return '<td data-field="'+field+'">'+(next.editing ? '<input data-index="'+i+'" data-field="'+field+'" value="'+esc(value)+'">' : esc(shown))+'</td>';
+    }).join('')+'</tr>').join('') : '<tr><td class="empty" colspan="9">No recorded events yet. Press Record to get started.</td></tr>';
+    scroller.scrollTop=oldScroll;
+    $('hotkey-rows').innerHTML=Object.keys(labels).map(action => '<div class="hotkey-row"><span>'+labels[action]+'</span><button type="button" data-action="'+action+'" class="'+(captureAction===action?'capturing':'')+'">'+(captureAction===action?'Press shortcut...':esc(next.hotkeys[action]))+'</button></div>').join('');
+  }
+  $('event-rows').addEventListener('change', event => {
+    if (event.target.matches('input[data-index]')) send('editEvent', {index:Number(event.target.dataset.index), field:event.target.dataset.field, value:event.target.value});
+  });
+  $('hotkey-rows').addEventListener('click', event => {
+    const button=event.target.closest('button[data-action]');
+    if (!button) return;
+    captureAction=button.dataset.action;
+    send('beginHotkey'); render(state); document.querySelector('button[data-action="'+captureAction+'"]').focus();
+  });
+  window.chrome.webview.addEventListener('message', event => render(event.data));
+  send('ready');
+</script>
+</body>
+</html>
