@@ -4,7 +4,7 @@ Relay is a Windows macro recorder and player with an autoclicker, editable hotke
 
 ## Download
 
-The `publish` folder contains two single-file executables:
+Tagged releases (`v*`) are built by GitHub Actions and attached to the repository's Releases page. The `publish` folder also contains two single-file executables:
 
 | File | Requirements |
 | --- | --- |
@@ -24,3 +24,12 @@ dotnet publish relay.csproj -p:PublishProfile=SingleFileRequiresDotNet
 ```
 
 The two publish profiles create single-file Windows x64 builds. Save each output separately because both builds use the filename `Relay.exe` by default.
+
+## Project layout
+
+| Path | Contents |
+| --- | --- |
+| `src/` | Application source, one file per class (`MainForm`, `MacroPlayer`, `MacroRecorder`, `NativeMethods`, ...). |
+| `GlobalUsings.cs` | Shared `using` directives for the project. |
+| `ui/index.html` | WebView page, embedded as a resource. |
+| `.github/workflows/build.yml` | Builds on every push and pull request; publishes both executables to a GitHub release when a `v*` tag is pushed. |

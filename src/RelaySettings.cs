@@ -68,13 +68,37 @@ internal sealed class RelaySettings
 		}
 		catch (Exception)
 		{
+			BackUpCorruptFile();
 		}
 		return new RelaySettings();
 	}
 
+	// A settings file that cannot be parsed is renamed so the user can recover it
+	// instead of being silently overwritten by defaults on the next save.
+	private static void BackUpCorruptFile()
+	{
+		try
+		{
+			File.Move(FilePath, FilePath + ".bak", overwrite: true);
+		}
+		catch (Exception)
+		{
+		}
+	}
+
+	// Writes to a temp file first so a crash mid-write cannot corrupt settings.json.
 	public void Save()
 	{
 		Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-		File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+		string temp = FilePath + ".tmp";
+		File.WriteAllText(temp, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+		if (File.Exists(FilePath))
+		{
+			File.Replace(temp, FilePath, null);
+		}
+		else
+		{
+			File.Move(temp, FilePath);
+		}
 	}
 }
