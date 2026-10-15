@@ -1599,7 +1599,7 @@ internal sealed class MainForm : Form
 	{
 		Text = "relay";
 		base.Width = settings.CompactMode ? 440 : 970;
-		base.Height = settings.CompactMode ? 620 : 580;
+		base.Height = 580;
 		MinimumSize = settings.CompactMode ? new Size(400, 500) : new Size(760, 480);
 		BackColor = Color.FromArgb(15, 18, 24);
 		ForeColor = Color.FromArgb(230, 234, 242);
@@ -1704,7 +1704,7 @@ internal sealed class MainForm : Form
 		legacyControls = new Control[Controls.Count];
 		Controls.CopyTo(legacyControls, 0);
 		foreach (Control control in legacyControls) control.Visible = false;
-		webView = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(13, 17, 25) };
+		webView = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(24, 26, 29) };
 		Controls.Add(webView);
 		webView.BringToFront();
 	}
@@ -1844,7 +1844,7 @@ internal sealed class MainForm : Form
 		Point center = new Point(Left + Width / 2, Top + Height / 2);
 		WindowState = FormWindowState.Normal;
 		MinimumSize = enabled ? new Size(400, 500) : new Size(760, 480);
-		Size target = enabled ? new Size(440, 620) : normalSize;
+		Size target = enabled ? new Size(440, 580) : normalSize;
 		Size = new Size(Math.Min(target.Width, area.Width), Math.Min(target.Height, area.Height));
 		Location = new Point(
 			Math.Clamp(center.X - Width / 2, area.Left, Math.Max(area.Left, area.Right - Width)),
