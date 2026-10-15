@@ -5,3 +5,5 @@ obj/
 *.suo
 *.clearmacro.json
 *.clearmacro
+out/
+dist/

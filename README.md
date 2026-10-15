@@ -25,6 +25,8 @@ dotnet publish relay.csproj -p:PublishProfile=SingleFileRequiresDotNet
 
 The two publish profiles create single-file Windows x64 builds. Save each output separately because both builds use the filename `Relay.exe` by default.
 
+Or run `.\build.ps1` from PowerShell to build both executables into `dist\`.
+
 ## Project layout
 
 | Path | Contents |
